@@ -14,10 +14,10 @@
 
 #ifndef _BSP_TFT_LCD_H
 #define _BSP_TFT_LCD_H
-#include "stm32f4xx.h"
 
-//#define BUTTON_BEEP()	/* 无按键提示音 */
 
+
+#define LCD_EN  PEout(4)
 
 /* 定义LCD显示区域的分辨率 */
 #define LCD_30_HEIGHT	240		/* 3.0寸宽屏 高度，单位：像素 */

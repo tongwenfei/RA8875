@@ -47,8 +47,9 @@
 *********************************************************************************************************
 */
 
-#include "LCD_RA8875.h"
-#include "stdio.h"
+#include "bsp.h"
+
+#include "bsp_ra8875_port.h"
 
 #define FLASH_DUAL_SPEED_EN			/* 双速模式， MOSI和MISO同时读取字库和图库中的数据. */
 
@@ -72,200 +73,7 @@ static void RA8875_SetTextCursor(uint16_t _usX, uint16_t _usY);
 static void BTE_SetTarBlock(uint16_t _usX, uint16_t _usY, uint16_t _usHeight, uint16_t _usWidth, uint8_t _ucLayer);
 static void BTE_SetOperateCode(uint8_t _ucOperate);
 static void BTE_Start(void);
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_ConfigGPIO
-*	功能说明: 配置CPU访问接口，如FSMC. SPI等
-*	形    参:  无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void RA8875_ConfigGPIO(void)
-{
-	static uint8_t s_run_first = 0;
-	
-	/* 如果已经运行过，则不再执行 */
-	if (s_run_first == 1)
-	{
-		return;
-	}
-	
-	s_run_first = 1;
-	
-	/* FSMC在 bsp_tft_lcd.c中已经配置好 */
-	
-	
-	/* RA8875按照SPI接口设置后，通过总线方式依然可以读到0X75的特征，因此不能用来自动识别SPI模式 */
-	
-		uint8_t value;
-		
-		
-		RA8875_WriteReg(0x60, 0x1A);	/* 60H寄存器背景色寄存器红色[4:0]低5位有效 */
-		value = RA8875_ReadReg(0x60);
-		while (value != 0x1A)
-		{
-			
-		}
-	
-		GPIO_InitTypeDef GPIO_InitStructure;
-		
-		/* 使能 GPIO时钟 */
-		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
-		
-		/* PD3 连接到RA8875的BUSY引脚，用来识别芯片内忙 */
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
-		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
-		GPIO_Init(GPIOD, &GPIO_InitStructure);
-		
-		
-}
 
-
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_ReadBusy
-*	功能说明: 判断RA8875的WAIT引脚状态
-*	形    参: 无
-*	返 回 值: 1 表示正忙, 0 表示内部不忙
-*********************************************************************************************************
-*/
-uint8_t RA8875_ReadBusy(void)
-{
-	if ((GPIOD->IDR & GPIO_Pin_3) == 0) 
-		return 1;
-	else 
-		return 0;
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_Delaly1us
-*	功能说明: 延迟函数, 不准, 主要用于RA8875 PLL启动之前发送指令间的延迟
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void RA8875_Delaly1us(void)
-{
-	uint8_t i;
-
-	for (i = 0; i < 10; i++);	/* 延迟, 不准 */
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_Delaly1ms
-*	功能说明: 延迟函数.  主要用于RA8875 PLL启动之前发送指令间的延迟
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void RA8875_Delaly1ms(void)
-{
-	uint16_t i;
-
-	for (i = 0; i < 5000; i++);	/* 延迟, 不准 */
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_WriteCmd
-*	功能说明: 写RA8875指令寄存器
-*	形    参:  无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void RA8875_WriteCmd(uint8_t _ucRegAddr)
-{		
-RA8875_REG = _ucRegAddr;	/* 设置寄存器地址 */	
-}
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_WriteData
-*	功能说明: 写RA8875指令寄存器
-*	形    参:  无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void RA8875_WriteData(uint8_t _ucRegValue)
-{
-	RA8875_RAM = _ucRegValue;	/* 设置寄存器地址 */
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_ReadData
-*	功能说明: 读RA8875寄存器值
-*	形    参: 无
-*	返 回 值: 寄存器值
-*********************************************************************************************************
-*/
-uint8_t RA8875_ReadData(void)
-{
-	uint8_t value = 0;
-	
-value = RA8875_RAM;		/* 读取寄存器值 */
-
-	return value;	
-}
-
-
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_WriteData16
-*	功能说明: 写RA8875数据总线，16bit，用于RGB显存写入
-*	形    参:  无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void RA8875_WriteData16(uint16_t _usRGB)
-{
-	
-	
-		RA8875_RAM = _usRGB;	/* 设置寄存器地址 */
-	
-}
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_ReadData16
-*	功能说明: 读RA8875显存，16bit RGB
-*	形    参:  无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-uint16_t RA8875_ReadData16(void)
-{
-	uint16_t value;
-	
-	
-	
-		value = RA8875_RAM;		/* 读取寄存器值 */
-	
-
-	return value;	
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_ReadStatus
-*	功能说明: 读RA8875状态寄存器
-*	形    参:  无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-uint8_t RA8875_ReadStatus(void)
-{
-	uint8_t value = 0;
-	
-	
-	
-		value = RA8875_REG;
-	
-	return value;	
-}
 /*
 *********************************************************************************************************
 *	函 数 名: RA8875_ReadID
@@ -352,7 +160,7 @@ void RA8875_InitHard(void)
 	【备注】这是安富莱电子为了便于统一测试例程，在LCD模块上做的硬件标识。在做产品时，不必自动识别。
 	*/
 	ucGPIX = RA8875_ReadReg(0xC7);
-
+//ucGPIX=1;
 	if (ucGPIX == 1)	/* 	GPIX = 1 表示 4.3 寸屏 480x272 */
 	{
 		/* 初始化PLL.  晶振频率为25M */
@@ -387,10 +195,15 @@ void RA8875_InitHard(void)
 				00b : 8-位MCU 接口。
 				1xb : 16-位MCU 接口。 【选这个】
 		*/
-		
+		if (g_RA8875_IF == RA_HARD_8080_16)
+		{
 			RA8875_WriteReg(0x10, (1 <<3 ) | (1 << 1));	/* 配置16位MCU并口，65K色 */
-		
-		
+		}
+		else
+		{
+			RA8875_WriteReg(0x10, (1 <<3 ) | (0 << 1));	/* SPI接口时，配置8位，65K色 */
+		}
+
 		/* REG[04h] Pixel Clock Setting Register   PCSR
 			bit7  PCLK Inversion
 				0 : PDAT 是在PCLK 正缘上升 (Rising Edge) 时被取样。
@@ -505,9 +318,14 @@ void RA8875_InitHard(void)
 				00b : 8-位MCU 接口。
 				1xb : 16-位MCU 接口。 【选这个】
 		*/
-		
+		if (g_RA8875_IF == RA_HARD_8080_16)
+		{
 			RA8875_WriteReg(0x10, (1 <<3 ) | (1 << 1));	/* 配置16位MCU并口，65K色 */
-		
+		}
+		else
+		{
+			RA8875_WriteReg(0x10, (1 <<3 ) | (0 << 1));	/* SPI接口时，配置8位，65K色 */
+		}
 
 		/* REG[04h] Pixel Clock Setting Register (PCSR)
 			bit7  PCLK Inversion
@@ -635,12 +453,40 @@ void RA8875_InitHard(void)
 	RA8875_SetDispWin(0, 0, g_LcdHeight, g_LcdWidth);
 
 	
-	
-		
-			//bsp_InitRA8875Flash();		
-	
+}
+/*
+*********************************************************************************************************
+*	函 数 名: RA8875_SetFrontColor
+*	功能说明: 设定前景色
+*	形    参: 颜色
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+uint16_t RA8875_GetFrontColor(void)
+{
+  uint16_t temp=0;
+	temp|=(RA8875_ReadReg(0x63)<<11);	/* R5  */
+	temp|=(RA8875_ReadReg(0x64)<<5);	/* G6 */
+	temp|=(RA8875_ReadReg(0x65));			/* B5 */
+	return temp;
 }
 
+/*
+*********************************************************************************************************
+*	函 数 名: RA8875_SetBackColor
+*	功能说明: 获取背景色
+*	形    参: 颜色
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+uint16_t RA8875_GetBackColor(void)
+{
+	uint16_t temp=0;
+	temp|=(RA8875_ReadReg(0x60)<<11);	/* R5  */
+	temp|=(RA8875_ReadReg(0x61)<<5);	/* G6 */
+	temp|=(RA8875_ReadReg(0x62));			/* B5 */
+	return temp;
+}
 /*
 *********************************************************************************************************
 *	函 数 名: RA8875_SetDirection
@@ -798,39 +644,7 @@ void RA8875_SetBackColor(uint16_t _usColor)
 	RA8875_WriteReg(0x61, (_usColor & 0x07E0) >> 5);	/* G6 */
 	RA8875_WriteReg(0x62, (_usColor & 0x001F));			/* B5 */
 }
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_SetFrontColor
-*	功能说明: 设定前景色
-*	形    参: 颜色
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-uint16_t RA8875_GetFrontColor(void)
-{
-  uint16_t temp=0;
-	temp|=(RA8875_ReadReg(0x63)<<11);	/* R5  */
-	temp|=(RA8875_ReadReg(0x64)<<5);	/* G6 */
-	temp|=(RA8875_ReadReg(0x65));			/* B5 */
-	return temp;
-}
 
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_SetBackColor
-*	功能说明: 获取背景色
-*	形    参: 颜色
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-uint16_t RA8875_GetBackColor(void)
-{
-	uint16_t temp=0;
-	temp|=(RA8875_ReadReg(0x60)<<11);	/* R5  */
-	temp|=(RA8875_ReadReg(0x61)<<5);	/* G6 */
-	temp|=(RA8875_ReadReg(0x62));			/* B5 */
-	return temp;
-}
 
 /*
 *********************************************************************************************************
@@ -1148,7 +962,8 @@ void RA8875_Sleep(void)
 */
 void RA8875_PutPixel(uint16_t _usX, uint16_t _usY, uint16_t _usColor)
 {	
-	
+	if (g_RA8875_IF == RA_HARD_8080_16)	/* 8080硬件总线16bit */
+	{
 		// 优化 RA8875_SetCursor(_usX, _usY);
 		s_ucRA8875Busy = 1;
 		{	
@@ -1175,8 +990,17 @@ void RA8875_PutPixel(uint16_t _usX, uint16_t _usY, uint16_t _usColor)
 		RA8875_RAM = _usColor;
 
 		s_ucRA8875Busy = 0;
-	
-	
+	}
+	else	/* SPI接口分支 */
+	{
+		RA8875_SetCursor(_usX, _usY);
+		s_ucRA8875Busy = 1;
+
+		RA8875_WriteCmd(0x02); 		/* 用于设定RA8875 进入内存(DDRAM或CGRAM)读取/写入模式 */
+		RA8875_WriteData16(_usColor);
+
+		s_ucRA8875Busy = 0;
+	}
 }
 
 /*
@@ -1240,133 +1064,141 @@ void RA8875_ClrScr(uint16_t _usColor)
 	BTE_Wait();						/* 等待操作结束 */
 }
 
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_DispBmpInFlash
-*	功能说明: 显示RA8875外挂串行Flash中的BMP位图.
-*			    位图格式:从左到右 从上到下扫描, 每个像素2字节, RGB = 565 格式, 高位在前.
-*	形    参:
-*			_usX, _usY : 图片的坐标
-*			_usHeight  :图片高度
-*			_usWidth   :图片宽度
-*			_uiFlashAddr       :串行Flash地址
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void RA8875_DispBmpInFlash(uint16_t _usX, uint16_t _usY, uint16_t _usHeight, uint16_t _usWidth,
-	uint32_t _uiFlashAddr)
-{
-	/* pdf 179页 7-10-1 连续内存直接存取模式
-		1. 设定工作窗口范围 (REG[30h] ~REG[37h])和内存写入位置 (REG[46h] ~REG[49h])
-		2. 设定Serial Flash/ROM 组态 (REG[05h])
-		3. 设定 内存直接存取数据来源起始位置 (REG[B0h] ~REG[B2h])
-		4. 设定 内存直接存取区块宽度 (REG[B4h] 和REG[B5h])
-		5. 设定 内存直接存取区块高度 (REG[B6h] 和 REG[B7h])
-		6. 设定内存直接存取来源图片宽度 (REG[B8h] 和 REG[B9h])
-		7. 开启内存直接存取为区块搬移模式 (REG[BFh] bit 1)
-		8. 开启内存直接存取起始讯号且检查内存直接存取忙碌讯号 (REG[BFh] bit 0)
-	*/
-	RA8875_SetDispWin(_usX, _usY, _usHeight, _usWidth);	/* REG[30h] ~REG[37h] 和 REG[46h] ~REG[49h] */
-
-	/* 05H  REG[05h] Serial Flash/ROM Configuration Register (SROC)
-		7	Serial Flash/ROM I/F # 选择
-				0:选择Serial Flash/ROM 0 接口。[安富莱RA8875驱动板图库芯片接在 1 接口]
-				1:选择Serial Flash/ROM 1 接口。
-		6	Serial Flash/ROM 寻址模式
-				0: 24 位寻址模式。
-				此位必须设为0。
-		5	Serial Flash/ROM 波形模式
-				0: 波形模式 0。
-				1: 波形模式 3。
-		4-3	Serial Flash /ROM 读取周期 (Read Cycle)
-			00b: 4 bus ?? 无空周期 (No Dummy Cycle)。
-			01b: 5 bus ??1 byte 空周期。
-			1Xb: 6 bus ??2 byte 空周期。
-		2	Serial Flash /ROM 存取模式 (Access Mode)
-			0: 字型模式 。
-			1: DMA 模式。
-		1-0	Serial Flash /ROM I/F Data Latch 选择模式
-			0Xb: 单一模式。
-			10b: 双倍模式0。
-			11b: 双倍模式1。
-	*/
-	
-	/* 对于铁框屏，一片 W25Q128，前面2MB是字库。后面14MB是图片 */
-	
-		_uiFlashAddr += (2*1024*1024);	/* 前面2MB分配给字库 */	
-		#ifdef FLASH_DUAL_SPEED_EN			/* 双速模式， MOSI和MISO同时读取数据 */
-			RA8875_WriteReg(0x05, (0 << 7) | (0 << 6) | (1 << 5) | (0 << 3) | (1 << 2) | (2 << 0));
-		#else				/* 普通模式，仅 MISO 读取数据 */
-			RA8875_WriteReg(0x05, (0 << 7) | (0 << 6) | (1 << 5) | (0 << 3) | (1 << 2) | (0 << 0));
-		#endif		
-		
-	
-
-	/*
-		Serial Flash/ROM 频率频率设定
-			0xb: SFCL 频率 = 系统频率频率(当DMA 为使能状态，并且色彩深度为256 色，则SFCL 频率
-				固定为=系统频率频率/ 2)
-			10b: SFCL 频率 =系统频率频率/ 2
-			11b: SFCL 频率 =系统频率频率/ 4
-
-		安富莱TFT驱动板。4.3寸系统频率为 68MHz； 7寸系统频率为 81.25MHz。
-
-		8M串行Flash的访问速度:SPI 时钟频率:80MHz(max.)
-		因此可以设置为 1 分频
-	*/
-	RA8875_WriteReg(0x06, (0 << 0));	/* 设置SCL时钟频率 */
-
-	/* 设定源地址
-		B0H   DMA 来源开始位置[7:0]
-		B1H   DMA 来源开始位置[15:8]
-		B2H   DMA 来源开始位置[23:16]
-	*/
-	RA8875_WriteReg(0xB0, (uint8_t)_uiFlashAddr);
-	RA8875_WriteReg(0xB1, (uint8_t)(_uiFlashAddr >> 8));
-	RA8875_WriteReg(0xB2, (uint8_t)(_uiFlashAddr >> 16));
-
-	/*
-		设置区块大小
-		B4   DMA 区块宽度[7:0]
-		B5   DMA 区块宽度[9:8]
-		B6   DMA 区块高度[7:0]
-	    B7   DMA 区块高度[9:8]
-	    B8   DMA 来源图片宽度[7:0]
-	    B9   DMA 来源图片宽度[9:8]
-	*/
-	RA8875_WriteReg(0xB4, _usWidth);		/* DMA 区块宽度 */
-	RA8875_WriteReg(0xB5, _usWidth >> 8);
-
-	RA8875_WriteReg(0xB6, _usHeight);		/* DMA 区块高度 */
-	RA8875_WriteReg(0xB7, _usHeight >> 8);
-
-	RA8875_WriteReg(0xB8, _usWidth);		/* DMA 来源图片宽度 */
-	RA8875_WriteReg(0xB9, _usWidth >> 8);
-
-	RA8875_WriteReg(0xBF, 1 << 1);			/* 选择区块模式 */
-	RA8875_WriteReg(0xBF, 1 << 1);			/* 选择区块模式 */
-
-	s_ucRA8875Busy = 1;
-	RA8875_WriteCmd(0xBF);
-	RA8875_WriteData((1 << 1) | (1 << 0));
-	while (RA8875_ReadReg_Int(0xBF) & (1 << 0));	/* 等待结束 */
-	s_ucRA8875Busy = 0;
-
-	RA8875_QuitWinMode();					/* 退出小窗口绘图模式 */
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: RA8875_DrawBMP
-*	功能说明: 在LCD上显示一个BMP位图，位图点阵扫描次序:从左到右，从上到下
-*	形    参:
-*			_usX, _usY : 图片的坐标
-*			_usHeight  :图片高度
-*			_usWidth   :图片宽度
-*			_ptr       :图片点阵指针
-*	返 回 值: 无
-*********************************************************************************************************
-*/
+///*
+//*********************************************************************************************************
+//*	函 数 名: RA8875_DispBmpInFlash
+//*	功能说明: 显示RA8875外挂串行Flash中的BMP位图.
+//*			    位图格式:从左到右 从上到下扫描, 每个像素2字节, RGB = 565 格式, 高位在前.
+//*	形    参:
+//*			_usX, _usY : 图片的坐标
+//*			_usHeight  :图片高度
+//*			_usWidth   :图片宽度
+//*			_uiFlashAddr       :串行Flash地址
+//*	返 回 值: 无
+//*********************************************************************************************************
+//*/
+//void RA8875_DispBmpInFlash(uint16_t _usX, uint16_t _usY, uint16_t _usHeight, uint16_t _usWidth,
+//	uint32_t _uiFlashAddr)
+//{
+//	/* pdf 179页 7-10-1 连续内存直接存取模式
+//		1. 设定工作窗口范围 (REG[30h] ~REG[37h])和内存写入位置 (REG[46h] ~REG[49h])
+//		2. 设定Serial Flash/ROM 组态 (REG[05h])
+//		3. 设定 内存直接存取数据来源起始位置 (REG[B0h] ~REG[B2h])
+//		4. 设定 内存直接存取区块宽度 (REG[B4h] 和REG[B5h])
+//		5. 设定 内存直接存取区块高度 (REG[B6h] 和 REG[B7h])
+//		6. 设定内存直接存取来源图片宽度 (REG[B8h] 和 REG[B9h])
+//		7. 开启内存直接存取为区块搬移模式 (REG[BFh] bit 1)
+//		8. 开启内存直接存取起始讯号且检查内存直接存取忙碌讯号 (REG[BFh] bit 0)
+//	*/
+//	RA8875_SetDispWin(_usX, _usY, _usHeight, _usWidth);	/* REG[30h] ~REG[37h] 和 REG[46h] ~REG[49h] */
+//
+//	/* 05H  REG[05h] Serial Flash/ROM Configuration Register (SROC)
+//		7	Serial Flash/ROM I/F # 选择
+//				0:选择Serial Flash/ROM 0 接口。[安富莱RA8875驱动板图库芯片接在 1 接口]
+//				1:选择Serial Flash/ROM 1 接口。
+//		6	Serial Flash/ROM 寻址模式
+//				0: 24 位寻址模式。
+//				此位必须设为0。
+//		5	Serial Flash/ROM 波形模式
+//				0: 波形模式 0。
+//				1: 波形模式 3。
+//		4-3	Serial Flash /ROM 读取周期 (Read Cycle)
+//			00b: 4 bus ?? 无空周期 (No Dummy Cycle)。
+//			01b: 5 bus ??1 byte 空周期。
+//			1Xb: 6 bus ??2 byte 空周期。
+//		2	Serial Flash /ROM 存取模式 (Access Mode)
+//			0: 字型模式 。
+//			1: DMA 模式。
+//		1-0	Serial Flash /ROM I/F Data Latch 选择模式
+//			0Xb: 单一模式。
+//			10b: 双倍模式0。
+//			11b: 双倍模式1。
+//	*/
+//	
+//	/* 对于铁框屏，一片 W25Q128，前面2MB是字库。后面14MB是图片 */
+//	if (g_tW25.ChipID == W25Q128)
+//	{
+//		_uiFlashAddr += PIC_OFFSET;	/* 前面2MB分配给字库 */	
+//		#ifdef FLASH_DUAL_SPEED_EN			/* 双速模式， MOSI和MISO同时读取数据 */
+//			RA8875_WriteReg(0x05, (0 << 7) | (0 << 6) | (1 << 5) | (0 << 3) | (1 << 2) | (2 << 0));
+//		#else				/* 普通模式，仅 MISO 读取数据 */
+//			RA8875_WriteReg(0x05, (0 << 7) | (0 << 6) | (1 << 5) | (0 << 3) | (1 << 2) | (0 << 0));
+//		#endif		
+//	}	
+//	else	/* 增强型屏，1片W25Q64(8MB)做字库，1片W25Q64(8MB)做图库 */
+//	{
+//		#ifdef FLASH_DUAL_SPEED_EN			/* 双速模式， MOSI和MISO同时读取数据 */
+//			RA8875_WriteReg(0x05, (1 << 7) | (0 << 6) | (1 << 5) | (0 << 3) | (1 << 2) | (2 << 0));
+//		#else				/* 普通模式，仅 MISO 读取数据 */
+//			RA8875_WriteReg(0x05, (1 << 7) | (0 << 6) | (1 << 5) | (0 << 3) | (1 << 2) | (0 << 0));
+//		#endif	
+//	}
+//
+//	/*
+//		Serial Flash/ROM 频率频率设定
+//			0xb: SFCL 频率 = 系统频率频率(当DMA 为使能状态，并且色彩深度为256 色，则SFCL 频率
+//				固定为=系统频率频率/ 2)
+//			10b: SFCL 频率 =系统频率频率/ 2
+//			11b: SFCL 频率 =系统频率频率/ 4
+//
+//		安富莱TFT驱动板。4.3寸系统频率为 68MHz； 7寸系统频率为 81.25MHz。
+//
+//		8M串行Flash的访问速度:SPI 时钟频率:80MHz(max.)
+//		因此可以设置为 1 分频
+//	*/
+//	RA8875_WriteReg(0x06, (0 << 0));	/* 设置SCL时钟频率 */
+//
+//	/* 设定源地址
+//		B0H   DMA 来源开始位置[7:0]
+//		B1H   DMA 来源开始位置[15:8]
+//		B2H   DMA 来源开始位置[23:16]
+//	*/
+//	RA8875_WriteReg(0xB0, (uint8_t)_uiFlashAddr);
+//	RA8875_WriteReg(0xB1, (uint8_t)(_uiFlashAddr >> 8));
+//	RA8875_WriteReg(0xB2, (uint8_t)(_uiFlashAddr >> 16));
+//
+//	/*
+//		设置区块大小
+//		B4   DMA 区块宽度[7:0]
+//		B5   DMA 区块宽度[9:8]
+//		B6   DMA 区块高度[7:0]
+//	    B7   DMA 区块高度[9:8]
+//	    B8   DMA 来源图片宽度[7:0]
+//	    B9   DMA 来源图片宽度[9:8]
+//	*/
+//	RA8875_WriteReg(0xB4, _usWidth);		/* DMA 区块宽度 */
+//	RA8875_WriteReg(0xB5, _usWidth >> 8);
+//
+//	RA8875_WriteReg(0xB6, _usHeight);		/* DMA 区块高度 */
+//	RA8875_WriteReg(0xB7, _usHeight >> 8);
+//
+//	RA8875_WriteReg(0xB8, _usWidth);		/* DMA 来源图片宽度 */
+//	RA8875_WriteReg(0xB9, _usWidth >> 8);
+//
+//	RA8875_WriteReg(0xBF, 1 << 1);			/* 选择区块模式 */
+//	RA8875_WriteReg(0xBF, 1 << 1);			/* 选择区块模式 */
+//
+//	s_ucRA8875Busy = 1;
+//	RA8875_WriteCmd(0xBF);
+//	RA8875_WriteData((1 << 1) | (1 << 0));
+//	while (RA8875_ReadReg_Int(0xBF) & (1 << 0));	/* 等待结束 */
+//	s_ucRA8875Busy = 0;
+//
+//	RA8875_QuitWinMode();					/* 退出小窗口绘图模式 */
+//}
+//
+///*
+//*********************************************************************************************************
+//*	函 数 名: RA8875_DrawBMP
+//*	功能说明: 在LCD上显示一个BMP位图，位图点阵扫描次序:从左到右，从上到下
+//*	形    参:
+//*			_usX, _usY : 图片的坐标
+//*			_usHeight  :图片高度
+//*			_usWidth   :图片宽度
+//*			_ptr       :图片点阵指针
+//*	返 回 值: 无
+//*********************************************************************************************************
+//*/
 void RA8875_DrawBMP(uint16_t _usX, uint16_t _usY, uint16_t _usHeight, uint16_t _usWidth, uint16_t *_ptr)
 {
 	uint32_t index = 0;
@@ -1811,12 +1643,7 @@ void RA8875_SetTextZoom(uint8_t _ucHSize, uint8_t _ucVSize)
 		RA8875_WriteReg(0x22, (0 << 4) | ((_ucHSize & 0x03) << 2) | ( _ucVSize & 0x03));
 	}
 }
-void RA8875_DispNum(uint16_t _usX, uint16_t _usY, uint32_t num)
-{
-  uint8_t buff[10]={0};
-  sprintf((char*)buff,"%d",num);
-  RA8875_DispAscii(_usX,_usY,(char*)buff);
-}
+
 /*
 *********************************************************************************************************
 *	函 数 名: RA8875_DispAscii

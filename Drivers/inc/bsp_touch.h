@@ -14,7 +14,7 @@
 #ifndef __BSP_TOUCH_H
 #define __BSP_TOUCH_H
 #include "stm32f4xx.h"
-#include "LCD_RA8875.h"
+#include "bsp.h"
 #define CALIB_POINT_COUNT	4		/* 2 = 2点校准； 4 = 四点校准 */
 
 #define TOUCH_FIFO_SIZE		20

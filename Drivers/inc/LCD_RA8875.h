@@ -15,15 +15,6 @@
 #ifndef _LCD_RA8875_H
 #define _LCD_RA8875_H
 #include "stm32f4xx.h"
-#include "bsp_tft_lcd.h"
-
-
-	#define RA8875_BASE		((uint32_t)(0x64000000 | 0x00000000))
-
-	#define RA8875_REG		*(__IO uint16_t *)(RA8875_BASE +  (1 << (18 + 1)))	/* FSMC 16位总线模式下，FSMC_A18口线对应物理地址A19 */
-	#define RA8875_RAM		*(__IO uint16_t *)(RA8875_BASE)
-
-	#define RA8875_RAM_ADDR		RA8875_BASE
 enum
 {
 	RA_FONT_16 = 0,		/* RA8875 字体 16点阵 */
@@ -71,7 +62,6 @@ void RA8875_SetDispWin(uint16_t _usX, uint16_t _usY, uint16_t _usHeight, uint16_
 void RA8875_QuitWinMode(void);
 void RA8875_CtrlGPO(uint8_t _pin, uint8_t _value);
 void RA8875_SetBackLight(uint8_t _bright);
-void RA8875_DispNum(uint16_t _usX, uint16_t _usY, uint32_t num);
 uint16_t RA8875_GetFrontColor(void);
 uint16_t RA8875_GetBackColor(void);
 void RA8875_TouchInit(void);

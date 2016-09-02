@@ -1975,6 +1975,9 @@
         <name>$PROJ_DIR$\..\..\Drivers\fonts\fontupd.h</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\..\Drivers\fonts\ra8875_asc_width.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\..\Drivers\fonts\text.c</name>
       </file>
       <file>
@@ -2048,9 +2051,6 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\Drivers\src\bsp_ra8875_port.c</name>
-        <excluded>
-          <configuration>Debug</configuration>
-        </excluded>
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\Drivers\src\bsp_spi_bus.c</name>
@@ -2069,6 +2069,9 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\Drivers\src\key.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\Drivers\src\LCD_fill_test.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\..\Drivers\src\LCD_RA8875.c</name>

@@ -905,7 +905,7 @@ static void TOUCH_WaitRelease(void)
 		{
 			usCount = 0;
 		}
-		bsp_DelayMS(10);
+		delay_ms(10);
 	}
 }
 
@@ -991,7 +991,7 @@ void TOUCH_Calibration(void)
 			{
 				usCount = 0;
 			}
-			bsp_DelayMS(10);
+			delay_ms(10);
 		}
 		if (n == 500)
 		{

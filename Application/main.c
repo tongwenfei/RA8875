@@ -47,7 +47,7 @@
   */
 
 
-
+FONT_T textfont;
 FATFS fs1[2];
 int main(void)
 {
@@ -59,7 +59,7 @@ int main(void)
 	uint8_t key,t;	  
 
 
-
+ 
 NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	 //设置NVIC中断分组2:2位抢占优先级，2位响应优先级
 	uart_init(115200);	 	//串口初始化为115200	
         delay_init(168);	    	 //延时函数初始化
@@ -72,7 +72,10 @@ NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	 //设置NVIC中断分组2:2位抢占优先
         FSMC_SRAM_Init(); 		//SRAM初始化
 	LED_Init();
         bsp_InitI2C();
-
+ textfont.BackColor=CL_BLUE;
+  textfont.FrontColor=CL_BLACK;
+  textfont.FontCode=FC_ST_16;
+    textfont.Space=0;
   /*时钟*/
   bsp_InitRTC();
 
@@ -90,8 +93,9 @@ NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	 //设置NVIC中断分组2:2位抢占优先
   	f_mount(&fs1[0],"0:",1); 		//挂载SD卡 
  	f_mount(&fs1[1],"1:",1); 		//挂载FLASH.
 		
-       RA8875_SetFrontColor(CL_RED);
-       RA8875_SetBackColor(CL_WHITE); 
+      
+	
+	//LCD_DispStr(20,20,"test",&textfont);
       
 //	while(font_init()) 			//检查字库
 //	  
@@ -161,19 +165,24 @@ NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	 //设置NVIC中断分组2:2位抢占优先
 //			}   
 //		}	
 //	}
-        RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC,ENABLE);
-	WM_SetCreateFlags(WM_CF_MEMDEV);
-
-       
-       
-       printf("Back color is 0x%04X\r\n",RA8875_GetBackColor());
-       printf("Front color is 0x%04X\r\n",RA8875_GetFrontColor());
-	GUI_Init();                /* 初始化 */
 	
-	keypad_demo();
+	
+	
+	
+	
+//        RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC,ENABLE);
+//	WM_SetCreateFlags(WM_CF_MEMDEV);
+//
+//       
+//       
+//       printf("Back color is 0x%04X\r\n",RA8875_GetBackColor());
+//       printf("Front color is 0x%04X\r\n",RA8875_GetFrontColor());
+//	GUI_Init();                /* 初始化 */
+//	
+//	keypad_demo();
   	while(1) 
 	{
-      
+      LCD_test_Speed();
         }
 }
 
